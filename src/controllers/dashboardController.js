@@ -1,4 +1,5 @@
 const User = require('../models/User');
+const Patient = require('../models/Patient');
 const Appointment = require('../models/Appointment');
 const Bill = require('../models/Bill');
 const Medicine = require('../models/Medicine');
@@ -9,7 +10,7 @@ exports.getAdminStats = async (req, res) => {
     try {
         // Basic Counts
         const staffCount = await User.countDocuments({ role: { $ne: 'patient' } });
-        const patientCount = await User.countDocuments({ role: 'patient' });
+        const patientCount = await Patient.countDocuments();
         
         // Appointments
         const today = new Date();

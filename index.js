@@ -43,6 +43,10 @@ app.use('/api/lab', require('./src/routes/labRoutes'));
 app.use('/api/beds', require('./src/routes/bedRoutes'));
 app.use('/api/ai', require('./src/routes/aiRoutes'));
 app.use('/api/payments', require('./src/routes/paymentRoutes'));
+app.use('/api/medical-records', require('./src/routes/medicalRecordRoutes'));
+app.use('/api/assets', require('./src/routes/assetRoutes'));
+app.use('/api/roster', require('./src/routes/rosterRoutes'));
+app.use('/api/telemedicine', require('./src/routes/telemedicineRoutes'));
 
 // Socket.io Real-time Hub
 io.on('connection', (socket) => {

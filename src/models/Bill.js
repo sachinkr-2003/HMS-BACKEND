@@ -18,12 +18,30 @@ const billSchema = new mongoose.Schema({
         type: Number,
         required: true
     },
+    paidAmount: {
+        type: Number,
+        default: 0
+    },
+    tax: {
+        type: Number,
+        default: 0
+    },
     status: {
         type: String,
-        enum: ['Paid', 'Unpaid', 'Pending'],
+        enum: ['Paid', 'Unpaid', 'Pending', 'Partially Paid'],
         default: 'Unpaid'
     },
     paymentMethod: String,
+    insurance: {
+        provider: String,
+        policyNumber: String,
+        claimStatus: {
+            type: String,
+            enum: ['Not Filed', 'Filed', 'Approved', 'Rejected'],
+            default: 'Not Filed'
+        },
+        coveredAmount: Number
+    },
     createdAt: {
         type: Date,
         default: Date.now

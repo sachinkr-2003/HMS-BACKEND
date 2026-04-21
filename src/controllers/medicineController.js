@@ -55,6 +55,18 @@ exports.checkExpiry = async (req, res) => {
         res.status(500).json({ message: error.message });
     }
 };
+
+// @desc    Check Low Stock
+// @route   GET /api/pharmacy/low-stock
+// @access  Private
+exports.getLowStock = async (req, res) => {
+    try {
+        const lowStock = await Medicine.find({ stock: { $lte: 10 } });
+        res.status(200).json(lowStock);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
 // @desc    Delete medicine
 // @route   DELETE /api/pharmacy/:id
 // @access  Private

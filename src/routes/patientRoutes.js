@@ -5,11 +5,11 @@ const router = express.Router();
 
 router.route('/')
     .get(protect, getPatients)
-    .post(protect, authorize('admin', 'doctor'), addPatient);
+    .post(protect, addPatient);
 
 router.route('/:id')
     .get(protect, getPatient)
-    .put(protect, authorize('admin', 'doctor'), updatePatient)
+    .put(protect, updatePatient)
     .delete(protect, authorize('admin'), deletePatient);
 
 module.exports = router;

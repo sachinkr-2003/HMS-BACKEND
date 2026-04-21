@@ -1,6 +1,7 @@
 const Appointment = require('../models/Appointment');
 const Patient = require('../models/Patient');
 const Doctor = require('../models/Doctor');
+const notificationService = require('../../services/notificationService');
 
 // @desc    Book appointment
 // @route   POST /api/appointments
@@ -15,6 +16,13 @@ exports.bookAppointment = async (req, res) => {
             appointmentDate,
             reason
         });
+
+        // Send SMS Notification
+        const patient = await Patient.findById(patientId);
+        if (patient && patient.phone) {
+            const msg = `Hello ${patient.name}, your appointment at HealthRekha Hospital is booked for ${new Date(appointmentDate).toLocaleString()}. Reason: ${reason}.`;
+            await notificationService.sendSMS(patient.phone, msg);
+        }
 
         res.status(201).json(appointment);
     } catch (error) {
@@ -48,7 +56,14 @@ exports.updateStatus = async (req, res) => {
             req.params.id,
             { status: req.body.status },
             { new: true }
-        );
+        ).populate('patient');
+
+        // Notify patient of status change
+        if (appointment && appointment.patient && appointment.patient.phone) {
+            const msg = `Update from HealthRekha: Your appointment status is now ${req.body.status.toUpperCase()}.`;
+            await notificationService.sendSMS(appointment.patient.phone, msg);
+        }
+
         res.status(200).json(appointment);
     } catch (error) {
         res.status(500).json({ message: error.message });
