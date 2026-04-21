@@ -7,8 +7,11 @@ const TWILIO_PHONE = process.env.TWILIO_PHONE_NUMBER;
 const WHATSAPP_PHONE = process.env.TWILIO_WHATSAPP_NUMBER;
 
 let client;
-if (TWILIO_SID && TWILIO_AUTH_TOKEN) {
+// Twilio SID must start with 'AC' to be valid
+if (TWILIO_SID && TWILIO_SID.startsWith('AC') && TWILIO_AUTH_TOKEN) {
     client = twilio(TWILIO_SID, TWILIO_AUTH_TOKEN);
+} else {
+    console.warn('TWILIO: Invalid or missing Account SID (must start with AC). SMS/WhatsApp will run in Simulation Mode.');
 }
 
 /**
