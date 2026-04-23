@@ -19,9 +19,9 @@ exports.bookAppointment = async (req, res) => {
 
         // Send SMS Notification
         const patient = await Patient.findById(patientId);
-        if (patient && patient.phone) {
+        if (patient && patient.contact) {
             const msg = `Hello ${patient.name}, your appointment at HealthRekha Hospital is booked for ${new Date(appointmentDate).toLocaleString()}. Reason: ${reason}.`;
-            await notificationService.sendSMS(patient.phone, msg);
+            await notificationService.sendSMS(patient.contact, msg);
         }
 
         res.status(201).json(appointment);
@@ -59,9 +59,9 @@ exports.updateStatus = async (req, res) => {
         ).populate('patient');
 
         // Notify patient of status change
-        if (appointment && appointment.patient && appointment.patient.phone) {
+        if (appointment && appointment.patient && appointment.patient.contact) {
             const msg = `Update from HealthRekha: Your appointment status is now ${req.body.status.toUpperCase()}.`;
-            await notificationService.sendSMS(appointment.patient.phone, msg);
+            await notificationService.sendSMS(appointment.patient.contact, msg);
         }
 
         res.status(200).json(appointment);

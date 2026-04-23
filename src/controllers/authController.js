@@ -140,6 +140,27 @@ exports.updateUser = async (req, res) => {
         }
 
         await user.save();
+        
+        // Institutional Automation: If role is updated to doctor, ensure profile exists
+        if (user.role === 'doctor') {
+            const doctorExists = await Doctor.findOne({ user: user._id });
+            if (!doctorExists) {
+                await Doctor.create({
+                    user: user._id,
+                    specialization: 'General Physician',
+                    fees: 500,
+                    availability: [
+                        { day: 'Monday', startTime: '09:00', endTime: '17:00' },
+                        { day: 'Tuesday', startTime: '09:00', endTime: '17:00' },
+                        { day: 'Wednesday', startTime: '09:00', endTime: '17:00' },
+                        { day: 'Thursday', startTime: '09:00', endTime: '17:00' },
+                        { day: 'Friday', startTime: '09:00', endTime: '17:00' },
+                        { day: 'Saturday', startTime: '09:00', endTime: '17:00' }
+                    ]
+                });
+            }
+        }
+
         res.status(200).json(user);
     } catch (error) {
         res.status(500).json({ message: error.message });

@@ -26,6 +26,14 @@ app.use(express.json());
 // Enable CORS
 app.use(cors());
 
+// Institutional Automation: Ensure upload directories exist
+const fs = require('fs');
+const path = require('path');
+const uploadDir = path.join(__dirname, 'uploads/invoices');
+if (!fs.existsSync(uploadDir)) {
+    fs.mkdirSync(uploadDir, { recursive: true });
+}
+
 // Basic route
 app.get('/', (req, res) => {
     res.send('Hospital Management System API is running...');
@@ -38,6 +46,10 @@ app.use('/api/patients', require('./src/routes/patientRoutes'));
 app.use('/api/doctors', require('./src/routes/doctorRoutes'));
 app.use('/api/appointments', require('./src/routes/appointmentRoutes'));
 app.use('/api/billing', require('./src/routes/billRoutes'));
+
+// Direct Download Route Bypass
+app.get('/api/billing-download/:id', require('./src/controllers/billingController').downloadInvoice);
+
 app.use('/api/pharmacy', require('./src/routes/medicineRoutes'));
 app.use('/api/lab', require('./src/routes/labRoutes'));
 app.use('/api/beds', require('./src/routes/bedRoutes'));

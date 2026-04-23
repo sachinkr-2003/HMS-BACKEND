@@ -14,18 +14,16 @@ const seed = async () => {
         if (!admin) process.exit();
 
         // 1. Seed Medicines
-        const medicineCount = await Medicine.countDocuments();
-        if (medicineCount === 0) {
-            const meds = [
-                { name: 'Amoxicillin 500mg', stock: 120, price: 45, category: 'Antibiotic' },
-                { name: 'Paracetamol 650mg', stock: 450, price: 2, category: 'Analgesic' },
-                { name: 'Metformin 850mg', stock: 200, price: 12, category: 'Antidiabetic' },
-                { name: 'Atorvastatin 20mg', stock: 80, price: 35, category: 'Statin' },
-                { name: 'Lisinopril 10mg', stock: 150, price: 8, category: 'ACE Inhibitor' },
-            ];
-            await Medicine.insertMany(meds);
-            console.log('Medicines seeded!');
-        }
+        await Medicine.deleteMany({});
+        const meds = [
+            { name: 'Amoxicillin 500mg', stock: 120, price: 45, category: 'Antibiotic', expiryDate: '2027-12-31' },
+            { name: 'Paracetamol 650mg', stock: 450, price: 15, category: 'Analgesic', expiryDate: '2026-10-15' },
+            { name: 'Metformin 850mg', stock: 200, price: 12, category: 'Antidiabetic', expiryDate: '2028-01-20' },
+            { name: 'Atorvastatin 20mg', stock: 80, price: 35, category: 'Statin', expiryDate: '2027-05-10' },
+            { name: 'Lisinopril 10mg', stock: 150, price: 18, category: 'ACE Inhibitor', expiryDate: '2026-08-25' },
+        ];
+        await Medicine.insertMany(meds);
+        console.log('Medicines seeded!');
 
         // 2. Seed Lab Tests
         const labCount = await LabTest.countDocuments();
