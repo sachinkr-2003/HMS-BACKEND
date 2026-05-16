@@ -35,12 +35,20 @@ exports.bookAppointment = async (req, res) => {
 // @access  Private (Admin/Staff)
 exports.getAppointments = async (req, res) => {
     try {
-        const appointments = await Appointment.find()
+        let appointments = await Appointment.find()
             .populate('patient', 'name')
             .populate({
                 path: 'doctor',
-                populate: { path: 'user', select: 'name' }
+                populate: { path: 'user', select: 'name hospitalId' }
             });
+            
+        if (req.user && req.user.role !== 'superadmin') {
+            appointments = appointments.filter(apt => 
+                apt.doctor && apt.doctor.user && apt.doctor.user.hospitalId && 
+                apt.doctor.user.hospitalId.toString() === req.user.hospitalId.toString()
+            );
+        }
+        
         res.status(200).json(appointments);
     } catch (error) {
         res.status(500).json({ message: error.message });

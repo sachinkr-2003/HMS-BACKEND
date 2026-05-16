@@ -18,7 +18,10 @@ exports.addPatient = async (req, res) => {
 // @access  Private
 exports.getPatients = async (req, res) => {
     try {
-        const patients = await Patient.find().populate('createdBy', 'name');
+        let patients = await Patient.find().populate('createdBy', 'name hospitalId');
+        if (req.user && req.user.role !== 'superadmin') {
+            patients = patients.filter(p => p.createdBy && p.createdBy.hospitalId && p.createdBy.hospitalId.toString() === req.user.hospitalId.toString());
+        }
         res.status(200).json(patients);
     } catch (error) {
         res.status(500).json({ message: error.message });

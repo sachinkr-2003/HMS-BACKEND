@@ -41,6 +41,7 @@ app.get('/', (req, res) => {
 
 // Mount routes
 app.use('/api/auth', require('./src/routes/authRoutes'));
+app.use('/api/superadmin', require('./src/routes/superAdminRoutes'));
 app.use('/api/dashboard', require('./src/routes/dashboardRoutes'));
 app.use('/api/patients', require('./src/routes/patientRoutes'));
 app.use('/api/doctors', require('./src/routes/doctorRoutes'));

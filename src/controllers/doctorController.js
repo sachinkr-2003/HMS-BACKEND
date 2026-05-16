@@ -1,5 +1,6 @@
 const Doctor = require('../models/Doctor');
 const User = require('../models/User');
+const jwt = require('jsonwebtoken');
 
 // @desc    Create doctor profile
 // @route   POST /api/doctors
@@ -32,7 +33,24 @@ exports.createDoctorProfile = async (req, res) => {
 // @access  Public
 exports.getDoctors = async (req, res) => {
     try {
-        const doctors = await Doctor.find().populate('user', 'name email');
+        let doctors = await Doctor.find().populate('user', 'name email hospitalId');
+        
+        let reqHospitalId = null;
+        if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
+            try {
+                const token = req.headers.authorization.split(' ')[1];
+                const decoded = jwt.verify(token, process.env.JWT_SECRET);
+                const requestingUser = await User.findById(decoded.id);
+                if (requestingUser && requestingUser.role !== 'superadmin') {
+                    reqHospitalId = requestingUser.hospitalId;
+                }
+            } catch (err) {}
+        }
+        
+        if (reqHospitalId) {
+            doctors = doctors.filter(doc => doc.user && doc.user.hospitalId && doc.user.hospitalId.toString() === reqHospitalId.toString());
+        }
+        
         res.status(200).json(doctors);
     } catch (error) {
         res.status(500).json({ message: error.message });

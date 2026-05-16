@@ -1,5 +1,6 @@
 const User = require('../models/User');
 const Doctor = require('../models/Doctor');
+const Hospital = require('../models/Hospital');
 const jwt = require('jsonwebtoken');
 
 // Generate Token
@@ -20,6 +21,18 @@ exports.register = async (req, res) => {
         // Final normalization to ensure database consistency
         const finalRole = (role || 'patient').toLowerCase();
 
+        let hospitalId = null;
+        if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
+            try {
+                const token = req.headers.authorization.split(' ')[1];
+                const decoded = jwt.verify(token, process.env.JWT_SECRET);
+                const requestingUser = await User.findById(decoded.id);
+                if (requestingUser && requestingUser.role !== 'superadmin') {
+                    hospitalId = requestingUser.hospitalId;
+                }
+            } catch (err) {}
+        }
+
         const userExists = await User.findOne({ email });
         if (userExists) return res.status(400).json({ message: 'User already exists' });
 
@@ -27,7 +40,8 @@ exports.register = async (req, res) => {
             name, 
             email, 
             password, 
-            role: finalRole 
+            role: finalRole,
+            hospitalId: hospitalId 
         });
 
         // Institutional Automation: If role is doctor, create a profile
@@ -69,11 +83,20 @@ exports.login = async (req, res) => {
 
         const user = await User.findOne({ email }).select('+password');
         if (user && (await user.matchPassword(password))) {
+            // Check if user belongs to a hospital and if it is suspended
+            if (user.hospitalId) {
+                const hospital = await Hospital.findById(user.hospitalId);
+                if (hospital && hospital.status === 'Suspended') {
+                    return res.status(403).json({ message: 'Your hospital account has been suspended. Please contact HealthRekha Administrator.' });
+                }
+            }
+
             res.json({
                 _id: user._id,
                 name: user.name,
                 email: user.email,
                 role: user.role,
+                hospitalId: user.hospitalId,
                 token: generateToken(user._id)
             });
         } else {
@@ -101,7 +124,11 @@ exports.getMe = async (req, res) => {
 // @access  Private (Admin)
 exports.getUsers = async (req, res) => {
     try {
-        const users = await User.find().select('-password');
+        let query = {};
+        if (req.user && req.user.role !== 'superadmin') {
+            query.hospitalId = req.user.hospitalId;
+        }
+        const users = await User.find(query).select('-password');
         res.status(200).json(users);
     } catch (error) {
         res.status(500).json({ message: error.message });
