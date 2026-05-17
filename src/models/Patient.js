@@ -12,7 +12,8 @@ const patientSchema = new mongoose.Schema({
     gender: {
         type: String,
         enum: ['Male', 'Female', 'Other', 'MALE', 'FEMALE', 'OTHER', 'male', 'female', 'other'],
-        required: [true, 'Please add gender']
+        required: [true, 'Please add gender'],
+        set: (v) => v ? v.charAt(0).toUpperCase() + v.slice(1).toLowerCase() : v
     },
     contact: {
         type: String,

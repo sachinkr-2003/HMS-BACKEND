@@ -42,7 +42,7 @@ exports.getAppointments = async (req, res) => {
                 populate: { path: 'user', select: 'name hospitalId' }
             });
             
-        if (req.user && req.user.role !== 'superadmin') {
+        if (req.user && req.user.role !== 'superadmin' && req.user.hospitalId) {
             appointments = appointments.filter(apt => 
                 apt.doctor && apt.doctor.user && apt.doctor.user.hospitalId && 
                 apt.doctor.user.hospitalId.toString() === req.user.hospitalId.toString()
