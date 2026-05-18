@@ -4,8 +4,8 @@ const { protect, authorize } = require('../middleware/authMiddleware');
 const router = express.Router();
 
 router.route('/')
-    .get(getBeds)
-    .post(protect, authorize('admin'), addBed);
+    .get(protect, getBeds)
+    .post(protect, authorize('admin', 'ward'), addBed);
 
 router.put('/:id/assign', protect, assignBed);
 router.put('/:id/discharge', protect, dischargeBed);

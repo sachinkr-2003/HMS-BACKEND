@@ -17,6 +17,7 @@ exports.createDoctorProfile = async (req, res) => {
 
         const doctor = await Doctor.create({
             user: userId,
+            hospitalId: user.hospitalId,
             specialization,
             fees,
             availability
@@ -33,7 +34,7 @@ exports.createDoctorProfile = async (req, res) => {
 // @access  Public
 exports.getDoctors = async (req, res) => {
     try {
-        let doctors = await Doctor.find().populate('user', 'name email hospitalId');
+        let query = {};
         
         let reqHospitalId = null;
         if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
@@ -48,9 +49,10 @@ exports.getDoctors = async (req, res) => {
         }
         
         if (reqHospitalId) {
-            doctors = doctors.filter(doc => doc.user && doc.user.hospitalId && doc.user.hospitalId.toString() === reqHospitalId.toString());
+            query.hospitalId = reqHospitalId;
         }
         
+        const doctors = await Doctor.find(query).populate('user', 'name email hospitalId');
         res.status(200).json(doctors);
     } catch (error) {
         res.status(500).json({ message: error.message });

@@ -29,6 +29,11 @@ const patientSchema = new mongoose.Schema({
             default: Date.now
         }
     }],
+    hospitalId: {
+        type: mongoose.Schema.ObjectId,
+        ref: 'Hospital',
+        required: true
+    },
     createdBy: {
         type: mongoose.Schema.ObjectId,
         ref: 'User',

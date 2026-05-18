@@ -8,62 +8,50 @@ const Bed = require('../models/Bed');
 
 exports.getAdminStats = async (req, res) => {
     try {
-        const staffCount = await User.countDocuments({ role: { $ne: 'patient' } });
+        const hid = req.user.role !== 'superadmin' ? req.user.hospitalId : null;
+        const userFilter = hid ? { hospitalId: hid, role: { $ne: 'patient' } } : { role: { $ne: 'patient' } };
+
+        const staffCount = await User.countDocuments(userFilter);
         const patientCount = await Patient.countDocuments();
-        
+
         const today = new Date();
-        today.setHours(0,0,0,0);
+        today.setHours(0, 0, 0, 0);
         const appointmentsToday = await Appointment.countDocuments({ appointmentDate: { $gte: today } });
 
-        // Advanced Financial Aggregation
         const bills = await Bill.find();
-        let totalRevenue = 0;
-        let pendingDues = 0;
-        let medicationRev = 0;
-        let consultationRev = 0;
-        let labRev = 0;
-        let wardRev = 0;
+        let totalRevenue = 0, pendingDues = 0, medicationRev = 0, consultationRev = 0, labRev = 0, wardRev = 0;
 
         bills.forEach(bill => {
-            totalRevenue += bill.paidAmount;
-            pendingDues += (bill.totalAmount - bill.paidAmount);
-
-            // Heuristic Categorization based on items and appointment link
-            const isPharmacy = bill.items.some(i => 
-                i.description.toLowerCase().includes('mg') || 
+            totalRevenue += bill.paidAmount || 0;
+            pendingDues += ((bill.totalAmount || 0) - (bill.paidAmount || 0));
+            const isPharmacy = bill.items.some(i => i.description && (
+                i.description.toLowerCase().includes('mg') ||
                 i.description.toLowerCase().includes('tablet') ||
                 i.description.toLowerCase().includes('capsule')
-            );
-            const isLab = bill.items.some(i => 
-                i.description.toLowerCase().includes('test') || 
+            ));
+            const isLab = bill.items.some(i => i.description && (
+                i.description.toLowerCase().includes('test') ||
                 i.description.toLowerCase().includes('profile') ||
                 i.description.toLowerCase().includes('panel')
-            );
-            const isConsultation = !!bill.appointment;
-
-            if (isPharmacy) medicationRev += bill.paidAmount;
-            else if (isLab) labRev += bill.paidAmount;
-            else if (isConsultation) consultationRev += bill.paidAmount;
-            else wardRev += bill.paidAmount;
+            ));
+            if (isPharmacy) medicationRev += bill.paidAmount || 0;
+            else if (isLab) labRev += bill.paidAmount || 0;
+            else if (bill.appointment) consultationRev += bill.paidAmount || 0;
+            else wardRev += bill.paidAmount || 0;
         });
 
         const totalBeds = await Bed.countDocuments();
         const availableBeds = await Bed.countDocuments({ isAvailable: true });
+        const medicineCount = await Medicine.countDocuments();
+        const pendingLabs = await LabTest.countDocuments({ status: 'Pending' });
 
         res.status(200).json({
-            staffCount,
-            patientCount,
-            appointmentsToday,
-            revenue: totalRevenue,
-            pendingDues,
-            medicationRev,
-            consultationRev,
-            labRev,
-            wardRev,
+            staffCount, patientCount, appointmentsToday,
+            revenue: totalRevenue, pendingDues,
+            medicationRev, consultationRev, labRev, wardRev,
             gstCollected: totalRevenue * 0.18,
             insuranceClaims: totalRevenue * 0.12,
-            totalBeds,
-            availableBeds,
+            totalBeds, availableBeds, medicineCount, pendingLabs,
             occupancyRate: totalBeds > 0 ? Math.round(((totalBeds - availableBeds) / totalBeds) * 100) : 0
         });
     } catch (error) {

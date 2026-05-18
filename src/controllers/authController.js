@@ -16,7 +16,6 @@ const generateToken = (id) => {
 exports.register = async (req, res) => {
     try {
         const { name, email, password, role } = req.body;
-        console.log("REGISTRATION ATTEMPT - NAME:", name, "EMAIL:", email, "ROLE:", role);
         
         // Final normalization to ensure database consistency
         const finalRole = (role || 'patient').toLowerCase();
@@ -48,6 +47,7 @@ exports.register = async (req, res) => {
         if (finalRole === 'doctor') {
             await Doctor.create({
                 user: user._id,
+                hospitalId: hospitalId,
                 specialization: 'General Physician',
                 fees: 500,
                 availability: [
@@ -112,7 +112,7 @@ exports.login = async (req, res) => {
 // @access  Private
 exports.getMe = async (req, res) => {
     try {
-        const user = await User.findById(req.user.id);
+        const user = await User.findById(req.user.id).populate('hospitalId');
         res.status(200).json(user);
     } catch (error) {
         res.status(500).json({ message: error.message });
@@ -199,4 +199,50 @@ exports.updateUser = async (req, res) => {
 // @access  Public
 exports.logout = async (req, res) => {
     res.status(200).json({ message: 'User logged out successfully' });
+};
+
+// @desc    Update current hospital details
+// @route   PUT /api/auth/hospital
+// @access  Private (Admin)
+exports.updateHospital = async (req, res) => {
+    try {
+        if (!req.user.hospitalId) return res.status(400).json({ message: 'No hospital associated' });
+        
+        const Hospital = require('../models/Hospital');
+        const hospital = await Hospital.findByIdAndUpdate(
+            req.user.hospitalId,
+            { upiId: req.body.upiId },
+            { new: true }
+        );
+        
+        if (!hospital) return res.status(404).json({ message: 'Hospital not found' });
+        
+        res.status(200).json(hospital);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+// @desc    Update password
+// @route   PUT /api/auth/updatepassword
+// @access  Private
+exports.updatePassword = async (req, res) => {
+    try {
+        const { currentPassword, newPassword } = req.body;
+        
+        const User = require('../models/User');
+        const user = await User.findById(req.user.id).select('+password');
+        
+        if (!user) return res.status(404).json({ message: 'User not found' });
+        
+        const isMatch = await user.matchPassword(currentPassword);
+        if (!isMatch) return res.status(400).json({ message: 'Current password is incorrect' });
+        
+        user.password = newPassword;
+        await user.save();
+        
+        res.status(200).json({ message: 'Password updated successfully' });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
 };

@@ -41,8 +41,15 @@ exports.createHospital = async (req, res) => {
         }
 
         // Generate Hospital ID
-        const count = await Hospital.countDocuments();
-        const hospitalId = `HSP-${String(count + 1).padStart(3, '0')}`;
+        const lastHospital = await Hospital.findOne().sort('-createdAt');
+        let hospitalNumber = 1;
+        if (lastHospital && lastHospital.hospitalId) {
+            const lastNumber = parseInt(lastHospital.hospitalId.split('-')[1]);
+            if (!isNaN(lastNumber)) {
+                hospitalNumber = lastNumber + 1;
+            }
+        }
+        const hospitalId = `HSP-${String(hospitalNumber).padStart(3, '0')}`;
 
         // Create Hospital
         const hospital = await Hospital.create({

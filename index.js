@@ -15,7 +15,7 @@ const app = express();
 const server = http.createServer(app);
 const io = socketio(server, {
     cors: {
-        origin: "*",
+        origin: process.env.ALLOWED_ORIGINS ? process.env.ALLOWED_ORIGINS.split(',') : "*",
         methods: ["GET", "POST"]
     }
 });
@@ -24,7 +24,9 @@ const io = socketio(server, {
 app.use(express.json());
 
 // Enable CORS
-app.use(cors());
+app.use(cors({
+    origin: process.env.ALLOWED_ORIGINS ? process.env.ALLOWED_ORIGINS.split(',') : "*"
+}));
 
 // Institutional Automation: Ensure upload directories exist
 const fs = require('fs');
@@ -59,6 +61,7 @@ app.use('/api/payments', require('./src/routes/paymentRoutes'));
 app.use('/api/medical-records', require('./src/routes/medicalRecordRoutes'));
 app.use('/api/assets', require('./src/routes/assetRoutes'));
 app.use('/api/roster', require('./src/routes/rosterRoutes'));
+app.use('/api/attendance', require('./src/routes/attendanceRoutes'));
 app.use('/api/telemedicine', require('./src/routes/telemedicineRoutes'));
 
 // Socket.io Real-time Hub

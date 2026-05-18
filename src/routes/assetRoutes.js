@@ -1,9 +1,10 @@
 const express = require('express');
 const router = express.Router();
 const { getAssets, createAsset, updateAsset } = require('../controllers/assetController');
+const { protect } = require('../middleware/authMiddleware');
 
-router.get('/', getAssets);
-router.post('/', createAsset);
-router.put('/:id', updateAsset);
+router.get('/', protect, getAssets);
+router.post('/', protect, createAsset);
+router.put('/:id', protect, updateAsset);
 
 module.exports = router;

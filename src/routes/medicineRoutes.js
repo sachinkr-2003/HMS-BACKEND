@@ -4,7 +4,7 @@ const { protect, authorize } = require('../middleware/authMiddleware');
 const router = express.Router();
 
 router.route('/')
-    .get(getMedicines)
+    .get(protect, getMedicines)
     .post(protect, authorize('admin', 'pharmacy'), addMedicine);
 
 router.delete('/:id', protect, authorize('admin', 'pharmacy'), deleteMedicine);

@@ -61,6 +61,7 @@ exports.payBill = async (req, res) => {
             { status: 'Paid', paymentMethod: req.body.paymentMethod }, 
             { new: true }
         );
+        if (!bill) return res.status(404).json({ message: 'Bill not found' });
         res.status(200).json(bill);
     } catch (error) {
         res.status(500).json({ message: error.message });

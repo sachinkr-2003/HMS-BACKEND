@@ -16,7 +16,11 @@ const protect = async (req, res, next) => {
             // Get user from the token
             req.user = await User.findById(decoded.id).select('-password');
 
-            if (req.user && req.user.hospitalId) {
+            if (!req.user) {
+                return res.status(401).json({ message: 'Not authorized, user not found' });
+            }
+
+            if (req.user.hospitalId) {
                 const hospital = await Hospital.findById(req.user.hospitalId);
                 if (hospital && hospital.status === 'Suspended') {
                     return res.status(403).json({ message: 'ACCOUNT_SUSPENDED', details: 'Your hospital account has been suspended by the Super Admin.' });

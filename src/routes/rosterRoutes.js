@@ -1,8 +1,9 @@
 const express = require('express');
 const router = express.Router();
 const { getRoster, assignShift } = require('../controllers/rosterController');
+const { protect, authorize } = require('../middleware/authMiddleware');
 
-router.get('/', getRoster);
-router.post('/assign', assignShift);
+router.get('/', protect, getRoster);
+router.post('/assign', protect, authorize('admin', 'ward', 'staff'), assignShift);
 
 module.exports = router;
